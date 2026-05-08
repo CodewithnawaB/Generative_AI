@@ -1,0 +1,29 @@
+from langchain_core.runnables import RunnablePassthrough
+from langchain_ollama import ChatOllama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+model = ChatOllama(model="llama3")
+parser = StrOutputParser()
+
+# Step 1 → Create chain with passthrough
+chain = (
+    {
+        # Keep original question unchanged
+        "original_question": RunnablePassthrough(),
+        
+        # Also process the question
+        "question": RunnablePassthrough()
+    }
+    | ChatPromptTemplate.from_template("""
+        Original Question was: {original_question}
+        
+        Now answer this clearly: {question}
+      """)
+    | model
+    | parser
+)
+
+# Step 2 → Run
+result = chain.invoke("What is Python?")
+print(result)
